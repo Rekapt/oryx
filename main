@@ -1,0 +1,94 @@
+const Discord = require('discord.js');
+const client = new Discord.Client();
+const fs = require('fs');
+const { ClientRequest } = require('http');
+const { runInContext } = require('vm');
+
+
+//commandHandler Setup
+client.command = new Discord.Collection();
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+for(const file of commandFiles){
+    const command = require(`./commands/${file}`);
+    client.command.set(command.name, command);
+}
+//Prefix
+    const prefix = '-';
+    client.once('ready', () => {
+    console.log('ORYX Testbot is Online!');
+    console.log('commandHandler loaded');
+    console.log('Bot is on ' + client.guilds.cache.size + ' Servers!')
+});
+
+client.on('message', message =>{
+    if(!message.content.startsWith(prefix) || message.author.bot) return;
+
+    const args = message.content.slice(prefix.length).split(" ");
+    const command = args.shift().toLowerCase();
+
+
+//commandHandler
+
+//Ping command
+    if(command == 'ping'){
+        client.command.get('ping').execute(message, args);
+    }
+//Help command (Embed)
+    else if (command == 'help'){
+        client.command.get('help').execute(message, args, Discord);
+    }
+//Admin embed
+    else if(command == 'admin'){
+        client.command.get('admin').execute(message, args, Discord);
+    }
+//Clear (admin command)
+    else if (command == 'clear'){
+        client.command.get('clear').execute(message, args, Discord);
+    }
+//Kick command (Admin command)
+    else if (command == 'kick'){
+        client.command.get('kick').execute(message, args, Discord);
+    }
+//Ban command (Admin command)
+    else if (command == 'ban'){
+        client.command.get('ban').execute(message, args, Discord);
+    }
+//Mute command (Admin command)
+    else if (command == 'mute'){
+        client.command.get('mute').execute(message, args);
+    }
+//unmute (Admin command)
+    else if (command == 'unmute'){
+        client.command.get('unmute').execute(message, args);
+    }
+//Rules
+else if (command == 'rules'){
+    client.command.get('rules').execute(message, args, Discord);
+}
+})
+
+//Status
+let activity = [
+    {activity: {name: '-help'}, type: "LISTENING"},
+    {activity: {name: 'Test'}, type: "STREAMING"}
+];
+let i = 0;
+    setInterval(() => {
+        let status = activity[i];
+        if(!status){
+        status = activity[0];
+        i = 0;
+    }
+     client.user.setPresence(status);
+     i++;
+}, 15000);
+
+//Welcome message
+client.on('guildMemberAdd', guildMember => {
+    let welcomeRole = guildMember.guild.roles.cache.find(role => role.name === 'member');
+    guildMember.roles.add(welcomeRole);
+    guildMember.guild.channels.cache.get('807998406521258034').send(`Welcome <@${guildMember.user.id}> to the ORYX Support Server.`)
+});
+
+
+  //Login Token
